@@ -14,7 +14,7 @@ func main() {
 		fmt.Errorf(err.Error())
 	}
 
-	blockNumber, err := client.GetBlockNumber()
+	blockNumber, err := client.GetBlockNumber(context.TODO())
 
 	if err != nil {
 		fmt.Errorf(err.Error())

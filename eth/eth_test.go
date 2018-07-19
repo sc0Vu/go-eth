@@ -1,6 +1,7 @@
 package eth
 
 import (
+	"context"
 	"testing"
 )
 
@@ -16,7 +17,7 @@ func TestConnect(t *testing.T) {
 }
 
 func TestGetBlockNumber(t *testing.T) {
-	_, err := ctx.GetBlockNumber()
+	_, err := ctx.GetBlockNumber(context.TODO())
 
 	if err != nil {
 		t.Errorf(err.Error())

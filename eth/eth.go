@@ -28,8 +28,8 @@ func Connect(host string) (*Client, error) {
 }
 
 // GetBlockNumber returns the block number.
-func (ec *Client) GetBlockNumber() (*big.Int, error) {
+func (ec *Client) GetBlockNumber(ctx context.Context) (*big.Int, error) {
 	var result hexutil.Big
-	err := ec.rpcClient.CallContext(context.TODO(), &result, "eth_blockNumber")
+	err := ec.rpcClient.CallContext(ctx, &result, "eth_blockNumber")
 	return (*big.Int)(&result), err
 }
