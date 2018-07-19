@@ -9,24 +9,27 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-var ctx *rpc.Client
+// Client defines typed wrappers for the Ethereum RPC API.
+type Client struct {
+	rpcClient *rpc.Client
+	EthClient *ethclient.Client
+}
 
 // Connect creates a client that uses the given host.
-func Connect(host string) (*ethclient.Client, error) {
-	context, err := rpc.Dial(host)
+func Connect(host string) (*Client, error) {
+	rpcClient, err := rpc.Dial(host)
 
 	if err != nil {
 		return nil, err
 	}
-	ctx = context
-	conn := ethclient.NewClient(context)
+	ethClient := ethclient.NewClient(rpcClient)
 
-	return conn, nil
+	return &Client{rpcClient, ethClient}, nil
 }
 
 // GetBlockNumber returns the block number.
-func GetBlockNumber() (*big.Int, error) {
+func (ec *Client) GetBlockNumber() (*big.Int, error) {
 	var result hexutil.Big
-	err := ctx.CallContext(context.TODO(), &result, "eth_blockNumber")
+	err := ec.rpcClient.CallContext(context.TODO(), &result, "eth_blockNumber")
 	return (*big.Int)(&result), err
 }

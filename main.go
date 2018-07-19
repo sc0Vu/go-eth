@@ -14,12 +14,12 @@ func main() {
 		fmt.Errorf(err.Error())
 	}
 
-	blockNumber, err := eth.GetBlockNumber()
+	blockNumber, err := client.GetBlockNumber()
 
 	if err != nil {
 		fmt.Errorf(err.Error())
 	}
 	fmt.Println(blockNumber)
-	fmt.Println(client.BlockByNumber(context.TODO(), blockNumber))
-	fmt.Println(client.HeaderByNumber(context.TODO(), big.NewInt(0)))
+	fmt.Println(client.EthClient.BlockByNumber(context.TODO(), blockNumber))
+	fmt.Println(client.EthClient.HeaderByNumber(context.TODO(), big.NewInt(0)))
 }
