@@ -1,6 +1,7 @@
 package eth
 
 import (
+	"fmt"
 	"context"
 	"math/big"
 
@@ -14,6 +15,10 @@ import (
 type Client struct {
 	rpcClient *rpc.Client
 	EthClient *ethclient.Client
+}
+
+func toHexInt(n *big.Int) string {
+    return fmt.Sprintf("0x%x", n)
 }
 
 // Connect creates a client that uses the given host.
@@ -39,22 +44,20 @@ func (ec *Client) GetBlockNumber(ctx context.Context) (*big.Int, error) {
 type Message struct {
 	To       *common.Address `json:"to"`
 	From     common.Address  `json:"from"`
-	Nonce    uint64          `json:"nonce"`
-	Value    *big.Int        `json:"value"`
-	GasLimit uint64          `json:"gas"`
-	GasPrice *big.Int        `json:"gasPrice"`
+	Value    string          `json:"value"`
+	GasLimit string          `json:"gas"`
+	GasPrice string          `json:"gasPrice"`
 	Data     []byte          `json:"data"`
 }
 
 // NewMessage returns the message.
-func NewMessage(from common.Address, to *common.Address, nonce uint64, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) Message {
+	func NewMessage(from common.Address, to *common.Address, value *big.Int, gasLimit *big.Int, gasPrice *big.Int, data []byte) Message {
 	return Message{
 		From:     from,
 		To:       to,
-		Nonce:    nonce,
-		Value:    value,
-		GasLimit: gasLimit,
-		GasPrice: gasPrice,
+		Value:    toHexInt(value),
+		GasLimit: toHexInt(gasLimit),
+		GasPrice: toHexInt(gasPrice),
 		Data:     data,
 	}
 }
