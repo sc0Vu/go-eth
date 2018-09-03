@@ -42,4 +42,10 @@ func main() {
 		return
 	}
 	fmt.Printf("Transaction has been sent, transaction hash: %s\n", txHash.String())
+
+	// time.Sleep(10 * time.Second)
+
+	tx, isPending, _ := client.EthClient.TransactionByHash(context.TODO(), txHash)
+	fmt.Println(tx.Nonce())
+	fmt.Println(isPending)
 }
