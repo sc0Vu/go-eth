@@ -1,8 +1,8 @@
 package eth
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -18,7 +18,7 @@ type Client struct {
 }
 
 func toHexInt(n *big.Int) string {
-    return fmt.Sprintf("0x%x", n)
+	return fmt.Sprintf("0x%x", n)
 }
 
 // Connect creates a client that uses the given host.
@@ -51,7 +51,7 @@ type Message struct {
 }
 
 // NewMessage returns the message.
-	func NewMessage(from common.Address, to *common.Address, value *big.Int, gasLimit *big.Int, gasPrice *big.Int, data []byte) Message {
+func NewMessage(from common.Address, to *common.Address, value *big.Int, gasLimit *big.Int, gasPrice *big.Int, data []byte) Message {
 	return Message{
 		From:     from,
 		To:       to,
@@ -66,7 +66,8 @@ type Message struct {
 //
 // If the transaction was a contract creation use the TransactionReceipt method to get the
 // contract address after the transaction has been mined.
-func (ec *Client) SendTransaction(ctx context.Context, tx *Message) error {
-	err := ec.rpcClient.CallContext(ctx, nil, "eth_sendTransaction", tx)
-	return err
+func (ec *Client) SendTransaction(ctx context.Context, tx *Message) (common.Hash, error) {
+	var txHash common.Hash
+	err := ec.rpcClient.CallContext(ctx, &txHash, "eth_sendTransaction", tx)
+	return txHash, err
 }

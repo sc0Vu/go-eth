@@ -14,16 +14,18 @@ func main() {
 
 	if err != nil {
 		fmt.Errorf(err.Error())
+		return
 	}
 
 	blockNumber, err := client.GetBlockNumber(context.TODO())
 
 	if err != nil {
 		fmt.Errorf(err.Error())
+		return
 	}
-	fmt.Println(blockNumber)
-	fmt.Println(client.EthClient.BlockByNumber(context.TODO(), blockNumber))
-	fmt.Println(client.EthClient.HeaderByNumber(context.TODO(), big.NewInt(0)))
+	fmt.Printf("Latest block number: %s\n", blockNumber.String())
+	// fmt.Println(client.EthClient.BlockByNumber(context.TODO(), blockNumber))
+	// fmt.Println(client.EthClient.HeaderByNumber(context.TODO(), big.NewInt(0)))
 	from := common.HexToAddress("30b82c8694b59695d78f33a7ba1c2a55dfa618d5")
 	to := common.HexToAddress("5e0f92917d632f7cdb7564a67644ca45430b524c")
 	// nonce, err := client.EthClient.NonceAt(context.TODO(), from, nil)
@@ -32,11 +34,12 @@ func main() {
 	gasPrice := big.NewInt(0)
 	data := []byte{}
 	message := eth.NewMessage(from, &to, amount, gasLimit, gasPrice, data)
-	fmt.Println(message)
-	err = client.SendTransaction(context.TODO(), &message)
+	var txHash common.Hash
+	txHash, err = client.SendTransaction(context.TODO(), &message)
 
 	if err != nil {
 		fmt.Errorf(err.Error())
+		return
 	}
-	fmt.Println("Transaction has been sent")
+	fmt.Printf("Transaction has been sent, transaction hash: %s\n", txHash.String())
 }
