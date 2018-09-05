@@ -1,0 +1,10 @@
+package: go-eth
+ignore:
+- go-eth/eth
+import:
+- package: github.com/ethereum/go-ethereum
+  subpackages:
+  - common
+  - common/hexutil
+  - ethclient
+  - rpc
