@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 	gasPrice := big.NewInt(0)
 	data := []byte{}
 	message := eth.NewMessage(&from, &to, amount, gasLimit, gasPrice, data)
+	receiptChan := make(chan *types.Receipt)
 
 	if txHash, err := client.SendTransaction(context.TODO(), &message); err != nil {
 		fmt.Errorf(err.Error())
@@ -40,12 +42,22 @@ func main() {
 	} else {
 		fmt.Printf("Message: %s\nTransaction has been sent, transaction hash: %s\n", message.String(), txHash.String())
 	    tx, isPending, _ := client.EthClient.TransactionByHash(context.TODO(), txHash)
-	    fmt.Printf("Transaction nonce: %d\nTransaction pending: %v\n", tx.Nonce(), isPending)
-		time.Sleep(10 * time.Second)
-		if receipt, _ := client.EthClient.TransactionReceipt(context.TODO(), txHash); receipt != nil {
-			fmt.Printf("Transaction status: %v\n", receipt.Status)
-		} else {
-			fmt.Println("Please start to mine")
-		}
+		fmt.Printf("Transaction nonce: %d\nTransaction pending: %v\n", tx.Nonce(), isPending)
+		// check transaction receipt
+		go func() {
+		    fmt.Printf("Check transaction: %s\n", txHash.String())
+			for {
+				receipt, _ := client.EthClient.TransactionReceipt(context.TODO(), txHash)
+				if receipt != nil {
+					receiptChan<-receipt
+					break
+				} else {
+					fmt.Println("Retry after i second")
+				    time.Sleep(1 * time.Second)
+				}
+			}
+		}()
+		receipt := <-receiptChan
+		fmt.Printf("Transaction status: %v\n", receipt.Status)
 	}
 }
