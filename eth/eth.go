@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -43,15 +44,24 @@ func (ec *Client) GetBlockNumber(ctx context.Context) (*big.Int, error) {
 // Message is a fully derived transaction and implements core.Message
 type Message struct {
 	To       *common.Address `json:"to"`
-	From     common.Address  `json:"from"`
+	From     *common.Address `json:"from"`
 	Value    string          `json:"value"`
 	GasLimit string          `json:"gas"`
 	GasPrice string          `json:"gasPrice"`
 	Data     []byte          `json:"data"`
 }
 
+// String
+func (msg *Message) String() string {
+	if str, err := json.Marshal(msg); err != nil {
+		panic(err)
+	} else {
+		return string(str)
+	}
+}
+
 // NewMessage returns the message.
-func NewMessage(from common.Address, to *common.Address, value *big.Int, gasLimit *big.Int, gasPrice *big.Int, data []byte) Message {
+func NewMessage(from *common.Address, to *common.Address, value *big.Int, gasLimit *big.Int, gasPrice *big.Int, data []byte) Message {
 	return Message{
 		From:     from,
 		To:       to,
