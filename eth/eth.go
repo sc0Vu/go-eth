@@ -8,8 +8,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.
@@ -80,4 +82,18 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *Message) (common.Hash
 	var txHash common.Hash
 	err := ec.rpcClient.CallContext(ctx, &txHash, "eth_sendTransaction", tx)
 	return txHash, err
+}
+
+// SendRawTransaction injects a transaction into the pending pool for execution.
+//
+// If the transaction was a contract creation use the TransactionReceipt method to get the
+// contract address after the transaction has been mined.
+func (ec *Client) SendRawTransaction(ctx context.Context, tx *types.Transaction) (common.Hash, error) {
+	var txHash common.Hash
+	if data, err := rlp.EncodeToBytes(tx);err != nil {
+		return txHash, err
+	} else {
+		err := ec.rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", common.ToHex(data))
+	    return txHash, err
+	}
 }
