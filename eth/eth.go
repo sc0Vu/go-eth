@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"time"
 	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -96,4 +97,22 @@ func (ec *Client) SendRawTransaction(ctx context.Context, tx *types.Transaction)
 		err := ec.rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", common.ToHex(data))
 	    return txHash, err
 	}
+}
+
+// 
+func (ec *Client) CheckTransaction(ctx context.Context, receiptChan chan *types.Receipt, txHash common.Hash, retrySeconds time.Duration) {
+	// check transaction receipt
+	go func() {
+		fmt.Printf("Check transaction: %s\n", txHash.String())
+		for {
+			receipt, _ := ec.EthClient.TransactionReceipt(ctx, txHash)
+			if receipt != nil {
+				receiptChan<-receipt
+				break
+			} else {
+				fmt.Printf("Retry after %d second\n", retrySeconds)
+				time.Sleep(retrySeconds * time.Second)
+			}
+		}
+	}()
 }
