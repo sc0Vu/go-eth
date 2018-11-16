@@ -98,7 +98,7 @@ func main() {
 					balance, _ := contract.BalanceOf(nil, from)
 					fmt.Printf("balance of %s is %d\n", from.String(), balance)
 
-					// watch transfer
+					// watch transfer, you need to use websocket to watch event
 					ch := make(chan *Contract.ContractTransfer)
 					sub, _ := contract.WatchTransfer(nil, ch, nil, nil)
 
@@ -118,6 +118,21 @@ func main() {
 						}
 					}()
 					fmt.Println("Event watching...")
+					// use filter transfer instead
+					// filterOpts := &bind.FilterOpts{
+					// 	Start: 1000000,
+					// 	End:   nil,
+					// }
+					// if logs, err := contract.FilterTransfer(filterOpts, nil, nil); err != nil {
+					// 	fmt.Errorf(err.Error())
+					// 	os.Exit(1)
+					// } else {
+					// 	log := logs.Event
+					// 	fmt.Printf("[Transfer event]\n")
+					// 	fmt.Printf("From: %s\n", log.From.String())
+					// 	fmt.Printf("To: %s\n", log.To.String())
+					// 	fmt.Printf("Value: %d\n", log.Value)
+					// }
 
 					// transfer token
 					nonce++
