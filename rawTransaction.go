@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"math/big"
 	"go-eth/eth"
 	"github.com/ethereum/go-ethereum/common"
@@ -10,23 +11,43 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
+func printInfo(msg string) {
+	str := fmt.Sprintf("[INFO] %s", msg)
+	fmt.Println(str)
+}
+
+func printError(err error) {
+	str := fmt.Sprintf("[ERROR] %s", err.Error())
+	fmt.Println(str)
+}
+
 func main() {
-	if client, err := eth.Connect("http://localhost:8545"); err != nil {
-		fmt.Errorf(err.Error())
+	rpc := os.Getenv("rpc")
+	if len(rpc) == 0 {
+		rpc = "http://localhost:8545"
+	}
+	if client, err := eth.Connect(rpc); err != nil {
+		printError(err)
 		return
 	} else {
+		chainID, err := client.ChainID(context.TODO())
+		if err != nil {
+			printError(err)
+			return
+		}
+		printInfo(fmt.Sprintf("Connect to chain %d", chainID.Int64()))
 		// generate private key
 		// privKey, err := crypto.GenerateKey()
 		// sha3 helloeth
 		if privKey, err := crypto.HexToECDSA("14c8e3bfacd31c7dddba84c0ba51a2d45fb1dd299bcb9772487232a7c3d18012"); err != nil {
-			fmt.Errorf(err.Error())
+			printError(err)
 			return
 		} else {
 		    from := crypto.PubkeyToAddress(privKey.PublicKey)
 			to := common.HexToAddress("30b82c8694b59695d78f33a7ba1c2a55dfa618d5")
-			fmt.Println(from.String())
+			printInfo(from.String())
 			if nonce, err := client.EthClient.NonceAt(context.TODO(), from, nil); err != nil {
-				fmt.Errorf(err.Error())
+				printError(err)
 				return
 			} else {
 				amount := big.NewInt(1)
@@ -40,16 +61,16 @@ func main() {
 				signedTx, _ := types.SignTx(tx, signer, privKey)
 				// client.EthClient.SendTransaction(context.TODO(), signedTx)
 				if txHash, err := client.SendRawTransaction(context.TODO(), signedTx); err != nil {
-					fmt.Errorf(err.Error())
+					printError(err)
 				} else {
 					receiptChan := make(chan *types.Receipt)
-					fmt.Printf("Transaction hash: %s\n", txHash.String())
+					printInfo(fmt.Sprintf("Transaction hash: %s", txHash.String()))
 					_, isPending, _ := client.EthClient.TransactionByHash(context.TODO(), txHash)
-					fmt.Printf("Transaction pending: %v\n", isPending)
+					printInfo(fmt.Sprintf("Transaction pending: %v", isPending))
 					// check transaction receipt
 					client.CheckTransaction(context.TODO(), receiptChan, txHash, 1)
 					receipt := <-receiptChan
-					fmt.Printf("Transaction status: %v\n", receipt.Status)
+					printInfo(fmt.Sprintf("Transaction status: %v", receipt.Status))
 				}
 			}
 		}

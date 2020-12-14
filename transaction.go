@@ -5,27 +5,41 @@ import (
 	"fmt"
 	"go-eth/eth"
 	"math/big"
-	// "time"
+	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func main() {
-	client, err := eth.Connect("http://localhost:8545")
+func printInfo(msg string) {
+	str := fmt.Sprintf("[INFO] %s", msg)
+	fmt.Println(str)
+}
 
+func printError(err error) {
+	str := fmt.Sprintf("[ERROR] %s", err.Error())
+	fmt.Println(str)
+}
+
+func main() {
+	rpc := os.Getenv("rpc")
+	if len(rpc) == 0 {
+		rpc = "http://localhost:8545"
+	}
+
+	client, err := eth.Connect(rpc)
 	if err != nil {
-		fmt.Errorf(err.Error())
+		printError(err)
 		return
 	}
 
 	blockNumber, err := client.GetBlockNumber(context.TODO())
-
 	if err != nil {
-		fmt.Errorf(err.Error())
+		printError(err)
 		return
 	}
-	fmt.Printf("Start to call eth_sendTransaction\nLatest block number: %s\n", blockNumber.String())
+	printInfo("Start to call eth_sendTransaction")
+	printInfo(fmt.Sprintf("Latest block number: %d", blockNumber))
 	
 	from := common.HexToAddress("30b82c8694b59695d78f33a7ba1c2a55dfa618d5")
 	to := common.HexToAddress("5e0f92917d632f7cdb7564a67644ca45430b524c")
@@ -36,16 +50,16 @@ func main() {
 	message := eth.NewMessage(&from, &to, amount, gasLimit, gasPrice, data)
 
 	if txHash, err := client.SendTransaction(context.TODO(), &message); err != nil {
-		fmt.Errorf(err.Error())
+		printError(err)
 		return
 	} else {
-		fmt.Printf("Message: %s\nTransaction has been sent, transaction hash: %s\n", message.String(), txHash.String())
+		printInfo(fmt.Sprintf("Message: %s Transaction has been sent, transaction hash: %s", message.String(), txHash.String()))
 	    tx, isPending, _ := client.EthClient.TransactionByHash(context.TODO(), txHash)
-		fmt.Printf("Transaction nonce: %d\nTransaction pending: %v\n", tx.Nonce(), isPending)
+		printInfo(fmt.Sprintf("Transaction nonce: %d Transaction pending: %v", tx.Nonce(), isPending))
 		// check transaction receipt
 		receiptChan := make(chan *types.Receipt)
 		client.CheckTransaction(context.TODO(), receiptChan, txHash, 1)
 		receipt := <-receiptChan
-		fmt.Printf("Transaction status: %v\n", receipt.Status)
+		printInfo(fmt.Sprintf("Transaction status: %v", receipt.Status))
 	}
 }

@@ -42,22 +42,36 @@ func makeTxOpts(from common.Address, nonce *big.Int, value *big.Int, gasPrice *b
 	return txOpts
 }
 
+func printInfo(msg string) {
+	str := fmt.Sprintf("[INFO] %s", msg)
+	fmt.Println(str)
+}
+
+func printError(err error) {
+	str := fmt.Sprintf("[ERROR] %s", err.Error())
+	fmt.Println(str)
+}
+
 func main() {
-	if client, err := eth.Connect("ws://localhost:8546"); err != nil {
-		fmt.Errorf(err.Error())
+	rpc := os.Getenv("rpc")
+	if len(rpc) == 0 {
+		rpc = "ws://localhost:8546"
+	}
+	if client, err := eth.Connect(rpc); err != nil {
+		printError(err)
 		return
 	} else {
 		// generate private key
 		// privKey, err := crypto.GenerateKey()
 		// sha3 helloeth
 		if privKey, err := crypto.HexToECDSA("14c8e3bfacd31c7dddba84c0ba51a2d45fb1dd299bcb9772487232a7c3d18012"); err != nil {
-			fmt.Errorf(err.Error())
+			printError(err)
 			return
 		} else {
 			from := crypto.PubkeyToAddress(privKey.PublicKey)
-			fmt.Println(from.String())
+			printInfo(from.String())
 			if nonce, err := client.EthClient.NonceAt(context.TODO(), from, nil); err != nil {
-				fmt.Errorf(err.Error())
+				printError(err)
 				return
 			} else {
 				// deploy contract
@@ -72,31 +86,31 @@ func main() {
 				// non := big.NewInt(int64(nonce))
 				// txOpts := makeTxOpts(from, non, amount, gasPrice, gasLimit, privKey, 0)
 				// if contractAddress, deployTx, contract, err := Contract.DeployContract(txOpts, client.EthClient); err != nil {
-				// 	fmt.Errorf(err.Error())
+				// 	printError(err)
 				// } else {
-				// 	fmt.Println(contractAddress, deployTx.Hash().String(), contract)
+				// 	printInfo(contractAddress, deployTx.Hash().String(), contract)
 				// }
 				// EIP155 signer
 				// signer := types.NewEIP155Signer(big.NewInt(4))
 				signer := types.HomesteadSigner{}
 				signedTx, _ := types.SignTx(tx, signer, privKey)
 				if txHash, err := client.SendRawTransaction(context.TODO(), signedTx); err != nil {
-					fmt.Errorf(err.Error())
+					printError(err)
 				} else {
 					receiptChan := make(chan *types.Receipt)
-					fmt.Printf("Transaction hash: %s\n", txHash.String())
+					printInfo(fmt.Sprintf("Transaction hash: %s", txHash.String()))
 					_, isPending, _ := client.EthClient.TransactionByHash(context.TODO(), txHash)
-					fmt.Printf("Transaction pending: %v\n", isPending)
+					printInfo(fmt.Sprintf("Transaction pending: %v", isPending))
 					// check transaction receipt
 					client.CheckTransaction(context.TODO(), receiptChan, txHash, 1)
 					receipt := <-receiptChan
-					fmt.Printf("Transaction status: %v\n", receipt.Status)
-					fmt.Printf("Contract address: %s\n", receipt.ContractAddress.Hex())
+					printInfo(fmt.Sprintf("Transaction status: %v", receipt.Status))
+					printInfo(fmt.Sprintf("Contract address: %s", receipt.ContractAddress.Hex()))
 
 					// get balance
 					contract, _ := Contract.NewContract(receipt.ContractAddress, client.EthClient)
 					balance, _ := contract.BalanceOf(nil, from)
-					fmt.Printf("balance of %s is %d\n", from.String(), balance)
+					printInfo(fmt.Sprintf("balance of %s is %d", from.String(), balance))
 
 					// watch transfer, you need to use websocket to watch event
 					ch := make(chan *Contract.ContractTransfer)
@@ -106,32 +120,32 @@ func main() {
 						for {
 							select {
 							case err := <-sub.Err():
-								fmt.Errorf(err.Error())
+								printError(err)
 								os.Exit(1)
 							case log := <-ch:
-								fmt.Printf("[Transfer event]\n")
-								fmt.Printf("From: %s\n", log.From.String())
-								fmt.Printf("To: %s\n", log.To.String())
-								fmt.Printf("Value: %d\n", log.Value)
+								printInfo("[Transfer event]")
+								printInfo(fmt.Sprintf("From: %s", log.From.String()))
+								printInfo(fmt.Sprintf("To: %s", log.To.String()))
+								printInfo(fmt.Sprintf("Value: %d", log.Value))
 								os.Exit(0)
 							}
 						}
 					}()
-					fmt.Println("Event watching...")
+					printInfo("Event watching...")
 					// use filter transfer instead
 					// filterOpts := &bind.FilterOpts{
 					// 	Start: 1000000,
 					// 	End:   nil,
 					// }
 					// if logs, err := contract.FilterTransfer(filterOpts, nil, nil); err != nil {
-					// 	fmt.Errorf(err.Error())
+					// 	printError(err)
 					// 	os.Exit(1)
 					// } else {
 					// 	log := logs.Event
-					// 	fmt.Printf("[Transfer event]\n")
-					// 	fmt.Printf("From: %s\n", log.From.String())
-					// 	fmt.Printf("To: %s\n", log.To.String())
-					// 	fmt.Printf("Value: %d\n", log.Value)
+					// 	printInfo("[Transfer event]\n")
+					// 	printInfo(fmt.Sprintf("From: %s", log.From.String()))
+					// 	printInfo(fmt.Sprintf("To: %s", log.To.String()))
+					// 	printInfo(fmt.Sprintf("Value: %d", log.Value))
 					// }
 
 					// transfer token
@@ -142,17 +156,17 @@ func main() {
 					bal := big.NewInt(10000)
 
 					if transferTx, err := contract.Transfer(txOpts, toAddress, bal); err != nil {
-						fmt.Errorf(err.Error())
+						printError(err)
 					} else {
 						txHash := transferTx.Hash()
 						receiptChan := make(chan *types.Receipt)
-						fmt.Printf("Transaction hash: %s\n", txHash.String())
+						printInfo(fmt.Sprintf("Transaction hash: %s", txHash.String()))
 						_, isPending, _ := client.EthClient.TransactionByHash(context.TODO(), txHash)
-						fmt.Printf("Transaction pending: %v\n", isPending)
+						printInfo(fmt.Sprintf("Transaction pending: %v", isPending))
 						// check transaction receipt
 						client.CheckTransaction(context.TODO(), receiptChan, txHash, 1)
 						receipt := <-receiptChan
-						fmt.Printf("Transaction status: %v\n", receipt.Status)
+						printInfo(fmt.Sprintf("Transaction status: %v", receipt.Status))
 					}
 					<-ch
 				}
