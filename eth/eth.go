@@ -37,11 +37,18 @@ func Connect(host string) (*Client, error) {
 	return &Client{rpcClient, ethClient}, nil
 }
 
-// GetBlockNumber returns the block number.
-func (ec *Client) GetBlockNumber(ctx context.Context) (*big.Int, error) {
+// ChainID returns the block number.
+func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 	var result hexutil.Big
-	err := ec.rpcClient.CallContext(ctx, &result, "eth_blockNumber")
+	err := ec.rpcClient.CallContext(ctx, &result, "eth_chainId")
 	return (*big.Int)(&result), err
+}
+
+// GetBlockNumber returns the block number.
+func (ec *Client) GetBlockNumber(ctx context.Context) (uint64, error) {
+	var result hexutil.Uint64
+	err := ec.rpcClient.CallContext(ctx, &result, "eth_blockNumber")
+	return uint64(result), err
 }
 
 // Message is a fully derived transaction and implements core.Message
