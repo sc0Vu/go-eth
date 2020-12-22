@@ -2,32 +2,33 @@ package contract
 
 import (
 	"context"
-	"net/http"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 )
 
-const endpoint = "https://api.etherscan.io/api"
+const etherscanEndpoint = "https://api.etherscan.io/api"
+
 var ErrWrongResult = fmt.Errorf("wrong result")
 
 type Response struct {
 	Message string
-	Status string
-	Result interface{}
+	Status  string
+	Result  interface{}
 }
 
 type Etherscan struct {
-	token string
+	token    string
 	endpoint string
 }
 
 func NewEtherscan(token string) (esc Etherscan) {
 	esc.token = token
-	esc.endpoint = endpoint
+	esc.endpoint = etherscanEndpoint
 	return esc
 }
 

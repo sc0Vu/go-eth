@@ -2,17 +2,17 @@ package eth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"time"
-	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.
@@ -98,15 +98,15 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *Message) (common.Hash
 // contract address after the transaction has been mined.
 func (ec *Client) SendRawTransaction(ctx context.Context, tx *types.Transaction) (common.Hash, error) {
 	var txHash common.Hash
-	if data, err := rlp.EncodeToBytes(tx);err != nil {
+	if data, err := rlp.EncodeToBytes(tx); err != nil {
 		return txHash, err
 	} else {
 		err := ec.rpcClient.CallContext(ctx, &txHash, "eth_sendRawTransaction", common.ToHex(data))
-	    return txHash, err
+		return txHash, err
 	}
 }
 
-// 
+//
 func (ec *Client) CheckTransaction(ctx context.Context, receiptChan chan *types.Receipt, txHash common.Hash, retrySeconds time.Duration) {
 	// check transaction receipt
 	go func() {
@@ -114,7 +114,7 @@ func (ec *Client) CheckTransaction(ctx context.Context, receiptChan chan *types.
 		for {
 			receipt, _ := ec.EthClient.TransactionReceipt(ctx, txHash)
 			if receipt != nil {
-				receiptChan<-receipt
+				receiptChan <- receipt
 				break
 			} else {
 				fmt.Printf("Retry after %d second\n", retrySeconds)

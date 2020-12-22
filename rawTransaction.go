@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"math/big"
-	"go-eth/eth"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"go-eth/eth"
+	"math/big"
+	"os"
 )
 
 func printInfo(msg string) {
@@ -43,7 +43,7 @@ func main() {
 			printError(err)
 			return
 		} else {
-		    from := crypto.PubkeyToAddress(privKey.PublicKey)
+			from := crypto.PubkeyToAddress(privKey.PublicKey)
 			to := common.HexToAddress("30b82c8694b59695d78f33a7ba1c2a55dfa618d5")
 			printInfo(from.String())
 			if nonce, err := client.EthClient.NonceAt(context.TODO(), from, nil); err != nil {
